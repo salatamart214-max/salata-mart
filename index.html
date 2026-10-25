@@ -119,6 +119,25 @@ footer {
   }
 }
 </style>
+  .gambar-produk {
+  width: 75px;
+  height: 85px;
+  object-fit: contain;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.info-produk {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.detail-produk {
+  min-width: 0;
+}
 </head>
 <body>
 
@@ -158,9 +177,24 @@ footer {
 const nomorWhatsApp = "6285373901623";
 
 const produk = [
-  { nama: "Le Minerale 600 ml", harga: 2500, jumlah: 0 },
-  { nama: "Aqua 600 ml", harga: 2500, jumlah: 0 },
-  { nama: "Aqua 1500 ml", harga: 6000, jumlah: 0 }
+  {
+    nama: "Le Minerale 600 ml",
+    harga: 2500,
+    jumlah: 0,
+    gambar: "https://crm.sunshineonline.com.my/crmfileshare01/image/sunshine/cache/product/155187_09042024143854-800x800.png"
+  },
+  {
+    nama: "Aqua 600 ml",
+    harga: 2500,
+    jumlah: 0,
+    gambar: "https://down-id.img.susercontent.com/file/sg-11134201-8262x-mjy1hynpo5qacb"
+  },
+  {
+    nama: "Aqua 1500 ml",
+    harga: 6000,
+    jumlah: 0,
+    gambar: "https://image.astronauts.cloud/product-images/2026/2/325_35a18e44-ba5a-4d98-b662-fa9ee905a066_900x900.jpg"
+  }
 ];
 
 const rupiah = angka =>
@@ -170,10 +204,19 @@ function tampilkanProduk() {
   document.getElementById("daftarProduk").innerHTML =
     produk.map((p, i) => `
       <div class="produk">
-        <div>
-          <strong>${p.nama}</strong>
-          <span class="harga">${rupiah(p.harga)}</span>
-        </div>
+  <div class="info-produk">
+    <img
+      class="gambar-produk"
+      src="${p.gambar}"
+      alt="${p.nama}"
+      loading="lazy"
+      onerror="this.style.display='none'"
+    >
+    <div class="detail-produk">
+      <strong>${p.nama}</strong>
+      <span class="harga">${rupiah(p.harga)}</span>
+    </div>
+  </div>
         <div class="kontrol">
           <button aria-label="Kurangi ${p.nama}"
             onclick="ubahJumlah(${i}, -1)">−</button>
