@@ -49,17 +49,61 @@ header h1 { margin: 0 0 10px; }
   margin-top: 5px;
 }
 
+.kontrol {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 button {
   background: #009b65;
   color: white;
-  padding: 12px 18px;
+  padding: 10px 14px;
   border: 0;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 15px;
 }
 
-button:hover { background: #007d51; }
+.kontrol button {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  font-size: 21px;
+}
+
+.jumlah {
+  min-width: 22px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.keranjang {
+  margin-top: 24px;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px #ddd;
+}
+
+.total {
+  color: #009b65;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.checkout {
+  width: 100%;
+  margin-top: 12px;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.info {
+  color: #555;
+  font-size: 14px;
+}
 
 footer {
   text-align: center;
@@ -67,8 +111,12 @@ footer {
 }
 
 @media (max-width: 480px) {
-  .produk { padding: 14px; }
-  button { padding: 10px 12px; }
+  .produk { padding: 13px; }
+  .kontrol { gap: 7px; }
+  .kontrol button {
+    width: 34px;
+    height: 34px;
+  }
 }
 </style>
 </head>
@@ -81,30 +129,24 @@ footer {
 
 <main class="container">
   <h2>🛒 Daftar Produk</h2>
+  <p class="info">Pilih jumlah barang dengan tombol + dan −.</p>
 
-  <div class="produk">
-    <div>
-      <strong>Le Minerale 600 ml</strong>
-      <span class="harga">Rp2.500</span>
-    </div>
-    <button type="button" onclick="pesan('Le Minerale 600 ml')">Pesan</button>
-  </div>
+  <div id="daftarProduk"></div>
 
-  <div class="produk">
-    <div>
-      <strong>Aqua 600 ml</strong>
-      <span class="harga">Rp2.500</span>
-    </div>
-    <button type="button" onclick="pesan('Aqua 600 ml')">Pesan</button>
-  </div>
+  <section class="keranjang">
+    <h2>🛍️ Keranjang Belanja</h2>
+    <div id="isiKeranjang">Belum ada barang dipilih.</div>
+    <p>Total barang: <strong id="totalBarang">0</strong></p>
+    <p>Total harga:</p>
+    <div class="total" id="totalHarga">Rp0</div>
 
-  <div class="produk">
-    <div>
-      <strong>Aqua 1500 ml</strong>
-      <span class="harga">Rp6.000</span>
-    </div>
-    <button type="button" onclick="pesan('Aqua 1500 ml')">Pesan</button>
-  </div>
+    <button class="checkout" onclick="pesanWhatsApp()">
+      Pesan via WhatsApp
+    </button>
+    <p class="info">
+      Pesanan akan dikirim ke WhatsApp SALATA MART.
+    </p>
+  </section>
 </main>
 
 <footer>
@@ -113,14 +155,103 @@ footer {
 </footer>
 
 <script>
-function pesan(produk) {
-  const nomor = "6285373901623";
-  const teks = "Halo SALATA MART, saya mau pesan " + produk;
-  const url = "https://wa.me/" + nomor +
-              "?text=" + encodeURIComponent(teks);
+const nomorWhatsApp = "6285373901623";
+
+const produk = [
+  { nama: "Le Minerale 600 ml", harga: 2500, jumlah: 0 },
+  { nama: "Aqua 600 ml", harga: 2500, jumlah: 0 },
+  { nama: "Aqua 1500 ml", harga: 6000, jumlah: 0 }
+];
+
+const rupiah = angka =>
+  "Rp" + angka.toLocaleString("id-ID");
+
+function tampilkanProduk() {
+  document.getElementById("daftarProduk").innerHTML =
+    produk.map((p, i) => `
+      <div class="produk">
+        <div>
+          <strong>${p.nama}</strong>
+          <span class="harga">${rupiah(p.harga)}</span>
+        </div>
+        <div class="kontrol">
+          <button aria-label="Kurangi ${p.nama}"
+            onclick="ubahJumlah(${i}, -1)">−</button>
+          <span class="jumlah" id="jumlah-${i}">${p.jumlah}</span>
+          <button aria-label="Tambah ${p.nama}"
+            onclick="ubahJumlah(${i}, 1)">+</button>
+        </div>
+      </div>
+    `).join("");
+}
+
+function ubahJumlah(index, perubahan) {
+  produk[index].jumlah = Math.max(
+    0, produk[index].jumlah + perubahan
+  );
+
+  document.getElementById("jumlah-" + index).textContent =
+    produk[index].jumlah;
+
+  perbaruiKeranjang();
+}
+
+function perbaruiKeranjang() {
+  const dipilih = produk.filter(p => p.jumlah > 0);
+
+  const totalBarang = dipilih.reduce(
+    (sum, p) => sum + p.jumlah, 0
+  );
+
+  const totalHarga = dipilih.reduce(
+    (sum, p) => sum + p.jumlah * p.harga, 0
+  );
+
+  document.getElementById("totalBarang").textContent =
+    totalBarang;
+
+  document.getElementById("totalHarga").textContent =
+    rupiah(totalHarga);
+
+  document.getElementById("isiKeranjang").innerHTML =
+    dipilih.length
+      ? dipilih.map(p => `
+          <p>${p.nama} × ${p.jumlah}
+          = <strong>${rupiah(p.jumlah * p.harga)}</strong></p>
+        `).join("")
+      : "Belum ada barang dipilih.";
+}
+
+function pesanWhatsApp() {
+  const dipilih = produk.filter(p => p.jumlah > 0);
+
+  if (dipilih.length === 0) {
+    alert("Bro, pilih jumlah barang dulu ya!");
+    return;
+  }
+
+  const total = dipilih.reduce(
+    (sum, p) => sum + p.jumlah * p.harga, 0
+  );
+
+  let pesan = "Halo SALATA MART, saya mau pesan:\n\n";
+
+  dipilih.forEach(p => {
+    pesan += `${p.nama} x ${p.jumlah} = ${rupiah(p.jumlah * p.harga)}\n`;
+  });
+
+  pesan += `\nTotal barang: ${dipilih.reduce((s, p) => s + p.jumlah, 0)}`;
+  pesan += `\nTOTAL HARGA: ${rupiah(total)}`;
+  pesan += "\n\nMohon konfirmasi pesanan saya. Terima kasih!";
+
+  const url = "https://wa.me/" + nomorWhatsApp +
+    "?text=" + encodeURIComponent(pesan);
 
   window.open(url, "_blank");
 }
+
+tampilkanProduk();
+perbaruiKeranjang();
 </script>
 
 </body>
