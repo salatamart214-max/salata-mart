@@ -7,24 +7,29 @@
 <title>SALATA MART - Katalog Produk</title>
 <style>
 * { box-sizing: border-box; }
+
 body {
   margin: 0;
   font-family: Arial, sans-serif;
   background: #f1f5f9;
   color: #222;
 }
+
 header {
   background: #009b65;
   color: white;
   text-align: center;
   padding: 28px 12px;
 }
+
 header h1 { margin: 0 0 10px; }
+
 .container {
   max-width: 850px;
   margin: 25px auto;
   padding: 15px;
 }
+
 .produk {
   display: flex;
   justify-content: space-between;
@@ -36,12 +41,14 @@ header h1 { margin: 0 0 10px; }
   border-radius: 12px;
   box-shadow: 0 2px 8px #ddd;
 }
+
 .harga {
   display: block;
   color: #009b65;
   font-weight: bold;
   margin-top: 5px;
 }
+
 button {
   background: #009b65;
   color: white;
@@ -49,11 +56,16 @@ button {
   border: 0;
   border-radius: 8px;
   cursor: pointer;
+  font-size: 14px;
 }
+
+button:hover { background: #007d51; }
+
 footer {
   text-align: center;
   padding: 20px;
 }
+
 @media (max-width: 480px) {
   .produk { padding: 14px; }
   button { padding: 10px 12px; }
@@ -75,7 +87,7 @@ footer {
       <strong>Le Minerale 600 ml</strong>
       <span class="harga">Rp2.500</span>
     </div>
-    <button onclick="pesan('Le Minerale 600 ml')">Pesan</a>
+    <button type="button" onclick="pesan('Le Minerale 600 ml')">Pesan</button>
   </div>
 
   <div class="produk">
@@ -83,7 +95,7 @@ footer {
       <strong>Aqua 600 ml</strong>
       <span class="harga">Rp2.500</span>
     </div>
-    <button onclick="pesan('Aqua 600 ml')">Pesan</a>
+    <button type="button" onclick="pesan('Aqua 600 ml')">Pesan</button>
   </div>
 
   <div class="produk">
@@ -91,7 +103,7 @@ footer {
       <strong>Aqua 1500 ml</strong>
       <span class="harga">Rp6.000</span>
     </div>
-    <button onclick="pesan('Aqua 1500 ml')">Pesan</a>
+    <button type="button" onclick="pesan('Aqua 1500 ml')">Pesan</button>
   </div>
 </main>
 
@@ -103,12 +115,11 @@ footer {
 <script>
 function pesan(produk) {
   const nomor = "6285373901623";
-  const pesan = "Halo SALATA MART, saya mau pesan " + produk;
-  window.open(
-    "https://wa.me/" + nomor + "?text=" +
-    encodeURIComponent(pesan),
-    "_blank"
-  );
+  const teks = "Halo SALATA MART, saya mau pesan " + produk;
+  const url = "https://wa.me/" + nomor +
+              "?text=" + encodeURIComponent(teks);
+
+  window.open(url, "_blank");
 }
 </script>
 
