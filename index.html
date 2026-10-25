@@ -154,6 +154,16 @@ main { max-width: 1120px; margin: 0 auto; padding: 24px 22px 50px; }
   box-shadow: 0 8px 17px #16a34a24; margin-top: 9px;
 }
 .checkout:hover { background: #12813c; }
+.order-form { margin-top: 18px; padding-top: 15px; border-top: 1px solid #d9ecdf; }
+.order-form h3 { margin: 0 0 14px; font-size: 15px; color: var(--ink); }
+.order-form label { display: block; font-size: 12px; font-weight: 800; margin: 12px 0 6px; color: #345346; }
+.order-form label span { color: var(--muted); font-weight: 500; }
+.order-form input, .order-form textarea {
+  display: block; width: 100%; border: 1px solid #d6e5db; border-radius: 10px;
+  background: white; padding: 11px 12px; color: var(--ink); font: inherit; font-size: 13px;
+}
+.order-form textarea { resize: vertical; min-height: 60px; }
+.order-form input:focus, .order-form textarea:focus { outline: 2px solid #8bd7b5; border-color: var(--green); }
 .checkout-note { color: #607568; text-align: center; font-size: 10px; line-height: 1.5; margin: 11px 0 0; }
 footer { background: #102d22; color: #d7e9df; padding: 28px 22px; text-align: center; }
 .footer-brand { font-size: 16px; font-weight: 900; color: white; }
@@ -262,8 +272,17 @@ footer p { margin: 7px 0 0; color: #afc8ba; font-size: 12px; }
       <div class="summary-label">Total belanja</div>
       <div class="summary-number" id="totalHarga">Rp0</div>
       <div class="summary-line"><span>Total barang</span><strong id="totalBarang">0 item</strong></div>
-      <button class="checkout" onclick="pesanWhatsApp()">💬 Pesan via WhatsApp</button>
-      <p class="checkout-note">Pesanan akan diteruskan ke WhatsApp SALATA MART untuk konfirmasi.</p>
+      <div class="order-form">
+        <h3>Data pengiriman</h3>
+        <label for="namaPelanggan">Nama pelanggan</label>
+        <input id="namaPelanggan" type="text" placeholder="Contoh: Budi" autocomplete="name">
+        <label for="alamatPelanggan">Alamat pengiriman</label>
+        <textarea id="alamatPelanggan" rows="3" placeholder="Nama jalan, nomor rumah, patokan lokasi..." autocomplete="street-address"></textarea>
+        <label for="catatanPesanan">Catatan pesanan <span>(opsional)</span></label>
+        <textarea id="catatanPesanan" rows="2" placeholder="Contoh: Tolong hubungi saat sampai"></textarea>
+      </div>
+      <button class="checkout" onclick="pesanWhatsApp()">Pesan via WhatsApp</button>
+      <p class="checkout-note">Pastikan nama dan alamat sudah benar. Pesanan akan diteruskan ke WhatsApp SALATA MART untuk konfirmasi.</p>
     </aside>
   </section>
 </main>
@@ -365,9 +384,28 @@ function pesanWhatsApp() {
     return;
   }
 
+  const nama = document.getElementById("namaPelanggan").value.trim();
+  const alamat = document.getElementById("alamatPelanggan").value.trim();
+  const catatan = document.getElementById("catatanPesanan").value.trim();
+
+  if (!nama) {
+    alert("Isi nama pelanggan dulu ya, bro.");
+    document.getElementById("namaPelanggan").focus();
+    return;
+  }
+  if (!alamat) {
+    alert("Isi alamat pengiriman dulu ya, bro.");
+    document.getElementById("alamatPelanggan").focus();
+    return;
+  }
+
   const total = dipilih.reduce((sum, p) => sum + p.jumlah * p.harga, 0);
   const jumlahSemua = dipilih.reduce((sum, p) => sum + p.jumlah, 0);
   let pesan = "Halo SALATA MART, saya mau pesan:\n\n";
+  pesan += "Nama: " + nama + "\n";
+  pesan += "Alamat pengiriman: " + alamat + "\n";
+  if (catatan) pesan += "Catatan: " + catatan + "\n";
+  pesan += "\nRINCIAN PESANAN:\n";
 
   dipilih.forEach(p => {
     pesan += `${p.nama} x ${p.jumlah} = ${rupiah(p.jumlah * p.harga)}\n`;
@@ -375,12 +413,11 @@ function pesanWhatsApp() {
 
   pesan += `\nTotal barang: ${jumlahSemua}`;
   pesan += `\nTOTAL HARGA: ${rupiah(total)}`;
-  pesan += "\n\nMohon konfirmasi pesanan saya. Terima kasih!";
+  pesan += "\n\nMohon konfirmasi pesanan dan biaya pengiriman. Terima kasih!";
 
   const url = "https://wa.me/" + nomorWhatsApp + "?text=" + encodeURIComponent(pesan);
   window.open(url, "_blank");
 }
-
 tampilkanProduk();
 perbaruiKeranjang();
 </script>
