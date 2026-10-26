@@ -296,31 +296,46 @@ footer p { margin: 7px 0 0; color: #afc8ba; font-size: 12px; }
 <script>
 const nomorWhatsApp = "6285373901623";
 
-const produk = [
-  {
-    nama: "Le Minerale 600 ml",
-    harga: 2500,
-    jumlah: 0,
-    kategori: "Air mineral",
-    gambar: "https://crm.sunshineonline.com.my/crmfileshare01/image/sunshine/cache/product/155187_09042024143854-800x800.png"
-  },
-  {
-    nama: "Aqua 600 ml",
-    harga: 2500,
-    jumlah: 0,
-    kategori: "Air mineral",
-    gambar: "https://down-id.img.susercontent.com/file/sg-11134201-8262x-mjy1hynpo5qacb"
-  },
-  {
-    nama: "Aqua 1500 ml",
-    harga: 6000,
-    jumlah: 0,
-    kategori: "Air mineral",
-    gambar: "https://image.astronauts.cloud/product-images/2026/2/325_35a18e44-ba5a-4d98-b662-fa9ee905a066_900x900.jpg"
-  }
-];
 
-const rupiah = angka => "Rp" + angka.toLocaleString("id-ID");
+let produk = [];
+
+const URL_DATABASE_PRODUK = "https://script.google.com/macros/s/AKfycbwzWbc_Vd3IM0MvggSYph3MmxFFAiIHJJg6X-r2NT84thkQ-qJHnP__LeWyhvc8ITDX/exec";
+
+const rupiah = angka => "Rp" + Number(angka || 0).toLocaleString("id-ID");
+
+function salataTerimaProduk(data) {
+  if (!data || !Array.isArray(data.products)) {
+    tampilkanErrorProduk();
+    return;
+  }
+
+  produk = data.products.map(p => ({
+    nama: String(p.nama || "Produk"),
+    harga: Number(p.harga) || 0,
+    jumlah: 0,
+    kategori: "Produk",
+    gambar: /^https?:\/\//i.test(p.foto || "") ? p.foto : "",
+    stok: p.stok ?? ""
+  }));
+
+  tampilkanProduk();
+  perbaruiKeranjang();
+}
+
+function muatProduk() {
+  const area = document.getElementById("daftarProduk");
+  area.textContent = "Memuat produk...";
+
+  const script = document.createElement("script");
+  script.src = URL_DATABASE_PRODUK + "?callback=salataTerimaProduk";
+  script.onerror = tampilkanErrorProduk;
+  document.body.appendChild(script);
+}
+
+function tampilkanErrorProduk() {
+  const area = document.getElementById("daftarProduk");
+  area.textContent = "Produk belum berhasil dimuat. Silakan muat ulang halaman.";
+}
 
 function tampilkanProduk() {
   document.getElementById("daftarProduk").innerHTML = produk.map((p, i) => `
