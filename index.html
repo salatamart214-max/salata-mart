@@ -195,6 +195,9 @@ main { max-width: 1120px; margin: 0 auto; padding: 24px 22px 50px; }
 footer { background: #102d22; color: #d7e9df; padding: 28px 22px; text-align: center; }
 .footer-brand { font-size: 16px; font-weight: 900; color: white; }
 footer p { margin: 7px 0 0; color: #afc8ba; font-size: 12px; }
+.stock-status { font-size: 12px; color: #287a42; font-weight: 700; margin-bottom: 7px; }
+.stock-status.out { display: inline-block; color: #fff; background: #d93025; padding: 5px 9px; border-radius: 7px; }
+.quantity-control button:disabled { opacity: .4; cursor: not-allowed; }
 @media (max-width: 760px) {
   main { padding: 18px 15px 36px; }
   .header-inner { padding: 14px 15px; }
@@ -355,7 +358,7 @@ function salataTerimaProduk(data) {
     jumlah: 0,
     kategori: String(p.kategori || "").trim() || tentukanKategori(p.nama),
     gambar: /^https?:\/\//i.test(p.foto || "") ? p.foto : "",
-    stok: p.stok ?? ""
+    stok: p.stok === "" || p.stok === null || p.stok === undefined ? null : Math.max(0, Number(p.stok) || 0)
   }));
 
   document.getElementById("jumlahProduk").textContent = produk.length + " produk";
@@ -413,10 +416,11 @@ function terapkanFilter() {
         <div class="product-name">${p.nama}</div>
         <p class="product-note">Praktis untuk kebutuhan sehari-hari</p>
         <div class="product-bottom">
+          ${p.stok === 0 ? '<div class="stock-status out">HABIS</div>' : (p.stok !== null ? `<div class="stock-status">Stok: ${p.stok}</div>` : '')}
           <div class="quantity-control" aria-label="Jumlah ${p.nama}">
-            <button aria-label="Kurangi ${p.nama}" onclick="ubahJumlah(${p.indexAsli}, -1)">−</button>
+            <button aria-label="Kurangi ${p.nama}" onclick="ubahJumlah(${p.indexAsli}, -1)" ${p.jumlah === 0 ? "disabled" : ""}>−</button>
             <span class="quantity" id="jumlah-${p.indexAsli}" aria-live="polite">${p.jumlah}</span>
-            <button class="add" aria-label="Tambah ${p.nama}" onclick="ubahJumlah(${p.indexAsli}, 1)">+</button>
+            <button class="add" aria-label="Tambah ${p.nama}" onclick="ubahJumlah(${p.indexAsli}, 1)" ${p.stok === 0 || (p.stok !== null && p.jumlah >= p.stok) ? "disabled" : ""}>+</button>
           </div>
         </div>
       </div>
@@ -429,8 +433,11 @@ function tampilkanProduk() {
 }
 
 function ubahJumlah(index, perubahan) {
-  produk[index].jumlah = Math.max(0, produk[index].jumlah + perubahan);
-  document.getElementById("jumlah-" + index).textContent = produk[index].jumlah;
+  const p = produk[index];
+  const batas = p.stok === null ? Infinity : p.stok;
+  p.jumlah = Math.max(0, Math.min(batas, p.jumlah + perubahan));
+  // Render ulang kartu agar tombol otomatis nonaktif saat stok habis/tercapai.
+  tampilkanProduk();
   perbaruiKeranjang();
 }
 
