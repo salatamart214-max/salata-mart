@@ -236,7 +236,7 @@ footer p { margin: 7px 0 0; color: #afc8ba; font-size: 12px; }
       <div class="brand-mark" aria-hidden="true">🛍️</div>
       <div>
         <h1 class="brand-name">SALATA MART</h1>
-        <p class="brand-tag">Belanja mudah, harga bersahabat!</p>
+        <p class="brand-tag">Belanja mudah, kebutuhan lengkap!</p>
       </div>
     </div>
     <div class="header-pill">● Siap melayani</div>
@@ -259,7 +259,7 @@ footer p { margin: 7px 0 0; color: #afc8ba; font-size: 12px; }
   <section class="benefits" aria-label="Keunggulan">
     <div class="benefit">
       <div class="benefit-icon">💚</div>
-      <div><strong>Harga bersahabat</strong><span>Harga jelas sebelum pesan</span></div>
+      <div><strong>Produk pilihan</strong><span>Tanyakan harga terbaru via WhatsApp</span></div>
     </div>
     <div class="benefit">
       <div class="benefit-icon">🛵</div>
@@ -275,7 +275,7 @@ footer p { margin: 7px 0 0; color: #afc8ba; font-size: 12px; }
     <div class="section-heading">
       <div>
         <h2>Produk pilihan</h2>
-        <p>Pilih jumlah dengan tombol + dan −.</p>
+        <p>Pilih jumlah dengan tombol + dan −. Harga dikonfirmasi saat pemesanan.</p>
       </div>
       <span class="product-count" id="jumlahProduk">Memuat produk...</span>
     </div>
@@ -289,9 +289,8 @@ footer p { margin: 7px 0 0; color: #afc8ba; font-size: 12px; }
       <div id="isiKeranjang" class="cart-empty">Keranjang masih kosong. Yuk, pilih produk dulu!</div>
     </div>
     <aside class="summary-panel">
-      <div class="summary-label">Total belanja</div>
-      <div class="summary-number" id="totalHarga">Rp0</div>
       <div class="summary-line"><span>Total barang</span><strong id="totalBarang">0 item</strong></div>
+      <p class="checkout-note">Harga produk akan dikonfirmasi oleh admin SALATA MART melalui WhatsApp.</p>
       <div class="order-form">
         <h3>Data pengiriman</h3>
         <label for="namaPelanggan">Nama pelanggan</label>
@@ -309,7 +308,7 @@ footer p { margin: 7px 0 0; color: #afc8ba; font-size: 12px; }
 
 <footer>
   <div class="footer-brand">SALATA MART</div>
-  <p>Belanja mudah, harga bersahabat!</p>
+  <p>Belanja mudah, kebutuhan lengkap!</p>
   <p>© 2026 SALATA MART · Terima kasih sudah berbelanja 💚</p>
 </footer>
 
@@ -371,7 +370,6 @@ function tampilkanProduk() {
         <div class="product-name">${p.nama}</div>
         <p class="product-note">Praktis untuk kebutuhan sehari-hari</p>
         <div class="product-bottom">
-          <div class="price">${rupiah(p.harga)}</div>
           <div class="quantity-control" aria-label="Jumlah ${p.nama}">
             <button aria-label="Kurangi ${p.nama}" onclick="ubahJumlah(${i}, -1)">−</button>
             <span class="quantity" id="jumlah-${i}" aria-live="polite">${p.jumlah}</span>
@@ -392,10 +390,7 @@ function ubahJumlah(index, perubahan) {
 function perbaruiKeranjang() {
   const dipilih = produk.filter(p => p.jumlah > 0);
   const totalBarang = dipilih.reduce((sum, p) => sum + p.jumlah, 0);
-  const totalHarga = dipilih.reduce((sum, p) => sum + p.jumlah * p.harga, 0);
-
   document.getElementById("totalBarang").textContent = totalBarang + " item";
-  document.getElementById("totalHarga").textContent = rupiah(totalHarga);
 
   const isi = document.getElementById("isiKeranjang");
   if (dipilih.length === 0) {
@@ -408,7 +403,6 @@ function perbaruiKeranjang() {
   isi.innerHTML = dipilih.map(p => `
     <div class="cart-row">
       <span>${p.nama} × ${p.jumlah}</span>
-      <strong>${rupiah(p.jumlah * p.harga)}</strong>
     </div>
   `).join("");
 }
@@ -435,7 +429,6 @@ function pesanWhatsApp() {
     return;
   }
 
-  const total = dipilih.reduce((sum, p) => sum + p.jumlah * p.harga, 0);
   const jumlahSemua = dipilih.reduce((sum, p) => sum + p.jumlah, 0);
   let pesan = "Halo SALATA MART, saya mau pesan:\n\n";
   pesan += "Nama: " + nama + "\n";
@@ -444,11 +437,11 @@ function pesanWhatsApp() {
   pesan += "\nRINCIAN PESANAN:\n";
 
   dipilih.forEach(p => {
-    pesan += `${p.nama} x ${p.jumlah} = ${rupiah(p.jumlah * p.harga)}\n`;
+    pesan += `${p.nama} x ${p.jumlah}\n`;
   });
 
   pesan += `\nTotal barang: ${jumlahSemua}`;
-  pesan += `\nTOTAL HARGA: ${rupiah(total)}`;
+  pesan += "\nHarga akan dikonfirmasi oleh admin SALATA MART.";
   pesan += "\n\nMohon konfirmasi pesanan dan biaya pengiriman. Terima kasih!";
 
   const url = "https://wa.me/" + nomorWhatsApp + "?text=" + encodeURIComponent(pesan);
