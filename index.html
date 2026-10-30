@@ -106,6 +106,13 @@ main { max-width: 1120px; margin: 0 auto; padding: 24px 22px 50px; }
 .section-heading h2 { font-size: clamp(22px, 3vw, 28px); letter-spacing: -.8px; margin: 0; }
 .section-heading p { margin: 7px 0 0; color: var(--muted); font-size: 13px; }
 .product-count { color: var(--green-dark); background: var(--green-light); padding: 8px 11px; border-radius: 999px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+.catalog-tools { display: grid; gap: 12px; margin: 18px 0 20px; }
+.search-box { width: 100%; border: 1px solid var(--line); border-radius: 13px; padding: 14px 16px; background: white; color: var(--ink); font: inherit; font-size: 14px; }
+.search-box:focus { outline: 2px solid #8bd7b5; border-color: var(--green); }
+.category-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.category-chip { border: 1px solid #d8e9df; border-radius: 999px; background: white; color: var(--green-dark); padding: 9px 14px; font-size: 12px; font-weight: 750; cursor: pointer; }
+.category-chip.active { background: var(--green); border-color: var(--green); color: white; }
+.no-products { grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 28px 15px; background: white; border: 1px dashed var(--line); border-radius: 16px; }
 .products { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .product-card {
   background: var(--surface); border: 1px solid var(--line); border-radius: 20px;
@@ -279,6 +286,10 @@ footer p { margin: 7px 0 0; color: #afc8ba; font-size: 12px; }
       </div>
       <span class="product-count" id="jumlahProduk">Memuat produk...</span>
     </div>
+    <div class="catalog-tools">
+      <input class="search-box" id="cariProduk" type="search" placeholder="🔎 Cari nama barang..." aria-label="Cari produk" oninput="terapkanFilter()">
+      <div class="category-list" id="daftarKategori" aria-label="Filter kategori"></div>
+    </div>
     <div class="products" id="daftarProduk"></div>
   </section>
 
@@ -317,6 +328,16 @@ const nomorWhatsApp = "6285373901623";
 
 
 let produk = [];
+let kategoriAktif = "Semua";
+
+function tentukanKategori(nama) {
+  const n = String(nama || "").toLowerCase();
+  if (/aqua|air mineral|le minerale|teh|kopi|susu|sirup|jus|minuman|soda/.test(n)) return "Minuman";
+  if (/mie|mi instan|roti|biskuit|snack|keripik|makanan|sarden|telur/.test(n)) return "Makanan";
+  if (/beras|gula|minyak|tepung|garam|sembako|kecap|saus/.test(n)) return "Sembako";
+  if (/sabun|shampoo|sampo|deterjen|detergen|pembersih|tisu|pewangi|rumah tangga/.test(n)) return "Kebutuhan rumah tangga";
+  return "Lainnya";
+}
 
 const URL_DATABASE_PRODUK = "https://script.google.com/macros/s/AKfycbwzWbc_Vd3IM0MvggSYph3MmxFFAiIHJJg6X-r2NT84thkQ-qJHnP__LeWyhvc8ITDX/exec";
 
@@ -332,12 +353,13 @@ function salataTerimaProduk(data) {
     nama: String(p.nama || "Produk"),
     harga: Number(p.harga) || 0,
     jumlah: 0,
-    kategori: "Produk",
+    kategori: String(p.kategori || "").trim() || tentukanKategori(p.nama),
     gambar: /^https?:\/\//i.test(p.foto || "") ? p.foto : "",
     stok: p.stok ?? ""
   }));
 
   document.getElementById("jumlahProduk").textContent = produk.length + " produk";
+  tampilkanKategori();
   tampilkanProduk();
   perbaruiKeranjang();
 }
@@ -357,13 +379,34 @@ function tampilkanErrorProduk() {
   area.textContent = "Produk belum berhasil dimuat. Silakan muat ulang halaman.";
 }
 
-function tampilkanProduk() {
-  document.getElementById("daftarProduk").innerHTML = produk.map((p, i) => `
+function tampilkanKategori() {
+  const kategori = ["Semua", ...new Set(produk.map(p => p.kategori).filter(Boolean))];
+  document.getElementById("daftarKategori").innerHTML = kategori.map(k => `
+    <button class="category-chip ${k === kategoriAktif ? "active" : ""}" onclick="pilihKategori(${JSON.stringify(k)})">${k}</button>
+  `).join("");
+}
+
+function pilihKategori(kategori) {
+  kategoriAktif = kategori;
+  tampilkanKategori();
+  terapkanFilter();
+}
+
+function terapkanFilter() {
+  const kata = (document.getElementById("cariProduk")?.value || "").trim().toLowerCase();
+  const hasil = produk.map((p, i) => ({ ...p, indexAsli: i })).filter(p =>
+    (kategoriAktif === "Semua" || p.kategori === kategoriAktif) && p.nama.toLowerCase().includes(kata)
+  );
+  const area = document.getElementById("daftarProduk");
+  if (!hasil.length) {
+    area.innerHTML = '<div class="no-products">Barang tidak ditemukan. Coba kata kunci atau kategori lain ya.</div>';
+    return;
+  }
+  area.innerHTML = hasil.map(p => `
     <article class="product-card">
       <div class="product-image-wrap">
-        ${p.gambar ? `<img class="product-image" src="${p.gambar}" alt="${p.nama}" loading="lazy"
-          onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">` : ""}
-        <div class="image-fallback" data-label="${p.nama.replace(/&/g, "&amp;").replace(/"/g, "&quot;")}" aria-label="Ilustrasi botol ${p.nama}" style="display:${p.gambar ? "none" : "block"}"></div>
+        ${p.gambar ? `<img class="product-image" src="${p.gambar}" alt="${p.nama}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">` : ""}
+        <div class="image-fallback" data-label="${p.nama.replace(/&/g, "&amp;").replace(/"/g, "&quot;")}" aria-label="Ilustrasi produk ${p.nama}" style="display:${p.gambar ? "none" : "block"}"></div>
       </div>
       <div class="product-details">
         <div class="product-category">${p.kategori}</div>
@@ -371,14 +414,18 @@ function tampilkanProduk() {
         <p class="product-note">Praktis untuk kebutuhan sehari-hari</p>
         <div class="product-bottom">
           <div class="quantity-control" aria-label="Jumlah ${p.nama}">
-            <button aria-label="Kurangi ${p.nama}" onclick="ubahJumlah(${i}, -1)">−</button>
-            <span class="quantity" id="jumlah-${i}" aria-live="polite">${p.jumlah}</span>
-            <button class="add" aria-label="Tambah ${p.nama}" onclick="ubahJumlah(${i}, 1)">+</button>
+            <button aria-label="Kurangi ${p.nama}" onclick="ubahJumlah(${p.indexAsli}, -1)">−</button>
+            <span class="quantity" id="jumlah-${p.indexAsli}" aria-live="polite">${p.jumlah}</span>
+            <button class="add" aria-label="Tambah ${p.nama}" onclick="ubahJumlah(${p.indexAsli}, 1)">+</button>
           </div>
         </div>
       </div>
     </article>
   `).join("");
+}
+
+function tampilkanProduk() {
+  terapkanFilter();
 }
 
 function ubahJumlah(index, perubahan) {
